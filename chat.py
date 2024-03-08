@@ -53,10 +53,11 @@ def update_conversation(conversation, reply):
 
 
 def stream_chat_completions(question, engine="openai"):
-    if engine == "openai" and not cfg["openai_api_key"] and not os.getenv("OPENAI_API_KEY"):
-        print("Error: No OpenAI API key found.")
-        print("Please set the OPENAI_API_KEY environment variable.")
-        return
+    if engine in ["anthropic", "openai"]:
+        key_env_var = f"{engine.upper()}_API_KEY"
+        if not cfg.get(f"{engine}_api_key") and not os.getenv(key_env_var):
+            print(f"Error: No {engine.capitalize()} API key found. Please set the {key_env_var} environment variable.")
+            return
 
     conversation = load_conversation()
     conversation["messages"].append({"role": "user", "content": question})
@@ -64,8 +65,9 @@ def stream_chat_completions(question, engine="openai"):
 
     try:
         if engine in cfg["model_map"]:
-            model = f"{engine}/{cfg['model_map'][engine]['model']}" if engine != "openai" else cfg["model_map"][engine]["model"]
-            response = completion(model=model, messages=messages, stream=True, base_url=cfg["model_map"][engine]["base_url"])
+            model = f"{engine}/{cfg['model_map'][engine]['model']}" if engine == "ollama" else cfg["model_map"][engine]["model"]
+            api_key = cfg["openai_api_key"] if engine == "openai" else cfg["anthropic_api_key"] if engine == "anthropic" else None
+            response = completion(model=model, messages=messages, stream=True, base_url=cfg["model_map"][engine]["base_url"], api_key=api_key)
             full_reply = handle_stream_response(response)
             update_conversation(conversation, full_reply)
         else:
