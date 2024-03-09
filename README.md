@@ -1,39 +1,41 @@
-# quick-ai-chat-cli
+# cli-gpt-chat
 
-This script enables CLI interaction with language models like GPT or Ollama though [LiteLLM](https://litellm.ai/). It supports conversational queries and maintains a history for context-aware responses.
+This script enables CLI interaction with language models through LiteLLM. It supports conversational queries and maintains a history for context-aware responses.
 
 ### Requirements
 
--   [OpenAI API Key](https://platform.openai.com/account/api-keys): Set in `config.yaml` or as `OPENAI_API_KEY` environment variable.
--   [Ollama](https://ollama.ai): Install and configure if using Ollama models, specified under `model_map` in `config.yaml`.
+-   An API key for language model providers like [OpenAI](https://platform.openai.com/account/api-keys) or [Anthropic](https://console.anthropic.com/settings/keys), set in `config.yaml` or as respective environment variables (e.g., `OPENAI_API_KEY`).
+-   If using [Ollama](https://ollama.ai) models, ensure they are installed and configured as specified under `model_map` in `config.yaml`.
 
 ### Setup
 
-1. Clone the repo.
+1. Clone the repository.
 2. Install dependencies: `pip install -r requirements.txt`.
 3. Create an alias in `.bashrc`: `alias gpt="python ~/path/to/chat.py"`.
 4. Source `.bashrc`: `source ~/.bashrc`.
 
 ## Configuration
 
--   `openai_api_key`: Your OpenAI API key. If not provided here, it must be set as an environment variable `OPENAI_API_KEY`.
--   `conversation_file`: Filename for storing the conversation history.
--   `conversation_expiry_hours`: The number of hours after which the conversation history is considered expired and will be reset.
--   `system_prompt`: Initial message from the system to start the conversation.
--   `model_map`: A mapping between short names and model identifiers. Include identifiers for OpenAI and any Ollama models you want to use.
+-   `api_keys`: Specify your API keys for providers like OpenAI and Anthropic. If not directly provided, set them as environment variables.
+-   `conversation_file`: Designate a file to save conversation history, aiding in context awareness.
+-   `conversation_expiry_hours`: Set the duration after which the conversation history expires and resets.
+-   `system_prompt`: Define the initial system message to start conversations.
+-   `model_map`: Map provider names to their respective models and base URLs for API requests.
+-   `default_provider`: Set your default language model provider.
+-   `debug`: Enable or disable debug mode for additional log information.
 
 ## Usage
 
-Use the `gpt` command followed by your question to activate the chat assistant. The `--engine` flag selects the model (default: OpenAI), and `--remove` clears history.
+Use the `gpt` command followed by your question to activate the chat assistant. The `-p` or `--provider` flag selects the provider (default: OpenAI), and `-d` or `--delete` clears conversational history.
 
 Examples:
 
 ```bash
-gpt --engine ollama What is the theory of relativity?
+gpt -p ollama What is the theory of relativity?
 ```
 
 ```bash
-gpt --remove Who discovered penicillin?
+gpt -d Who discovered penicillin?
 ```
 
 ```bash
@@ -42,8 +44,8 @@ gpt What is the capital of Italy?
 
 ### Flags
 
--   `--engine`: Choose the language model (default `openai`).
--   `--remove`: Clear conversation history.
+-   `-p` or `--provider`: Choose the provider. (default `openai`).
+-   `-d` or `--delete`: Clear conversation history.
 
 ## Troubleshooting
 

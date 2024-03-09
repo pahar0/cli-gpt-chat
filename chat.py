@@ -42,9 +42,10 @@ def handle_stream_response(response):
     return full_reply
 
 
-def update_conversation(conversation, reply):
+def update_conversation(conversation, reply, model_used):
     conversation["messages"].append({"role": "assistant", "content": reply})
     conversation["last_message_time"] = datetime.datetime.now().isoformat()
+    conversation["model_used"] = model_used
     try:
         with open(CONVERSATION_FILE, "w") as f:
             json.dump(conversation, f, indent=2)
@@ -52,46 +53,52 @@ def update_conversation(conversation, reply):
         return print("Error: Could not save conversation file.")
 
 
-def stream_chat_completions(question, engine="openai"):
-    if engine in ["anthropic", "openai"]:
-        key_env_var = f"{engine.upper()}_API_KEY"
-        if not cfg.get(f"{engine}_api_key") and not os.getenv(key_env_var):
-            print(f"Error: No {engine.capitalize()} API key found. Please set the {key_env_var} environment variable.")
-            return
-
-    conversation = load_conversation()
+def stream_chat_completions(conversation, question, provider, model):
     conversation["messages"].append({"role": "user", "content": question})
     messages = [{"role": msg["role"], "content": msg["content"]} for msg in conversation["messages"]]
 
     try:
-        if engine in cfg["model_map"]:
-            model = f"{engine}/{cfg['model_map'][engine]['model']}" if engine == "ollama" else cfg["model_map"][engine]["model"]
-            api_key = cfg["openai_api_key"] if engine == "openai" else cfg["anthropic_api_key"] if engine == "anthropic" else None
-            response = completion(model=model, messages=messages, stream=True, base_url=cfg["model_map"][engine]["base_url"], api_key=api_key)
-            full_reply = handle_stream_response(response)
-            update_conversation(conversation, full_reply)
-        else:
-            print("Unsupported engine.")
+        api_key = cfg["api_keys"][provider] if provider in cfg["api_keys"] else None
+        full_model = f"{provider}/{model}"
+        response = completion(model=full_model, messages=messages, stream=True, base_url=cfg["model_map"][provider]["base_url"], api_key=api_key, logger_fn=print if cfg["debug"] else None)
+        if cfg["debug"]:
+            print(f"Using: {full_model}")
+        full_reply = handle_stream_response(response)
+        update_conversation(conversation, full_reply, full_model)
 
     except Exception as e:
         print(f"{type(e).__name__} Error: {str(e)}")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Use this script to interact with the OpenAI GPT model or any Ollama model in streaming mode. You can ask a question or remove the conversation file.")
+    parser = argparse.ArgumentParser(description="Use this script to interact with the OpenAI, Anthropic or Ollama models in streaming mode.")
     parser.add_argument("question", type=str, nargs="*", default=[], help="Type the question you want to ask the LLM model.")
-    parser.add_argument("--engine", type=str, default="openai", choices=[model for model in cfg["model_map"]], help="The engine to use for the conversation.")
-    parser.add_argument("--remove", action="store_true", help="If specified, the previous conversation file will be removed before the new conversation.")
+    parser.add_argument("-p", "--provider", type=str, help="The provider to use for completion. Supported providers are: " + ", ".join(cfg["model_map"].keys()) + ".")
+    parser.add_argument("-d", "--delete", action="store_true", help="If specified, the previous conversation file will be deleted before the new conversation.")
 
     args = parser.parse_args()
 
-    if args.remove and os.path.exists(CONVERSATION_FILE):
+    if args.delete and os.path.exists(CONVERSATION_FILE):
         os.remove(CONVERSATION_FILE)
 
     if args.question:
         question = " ".join(args.question)
-        stream_chat_completions(question, engine=args.engine)
-    elif not args.remove:
+        conversation = load_conversation()
+        provider = args.provider if args.provider else conversation["model_used"].split("/")[0] if conversation.get("model_used") else cfg["default_provider"]
+        model = cfg["model_map"][provider]["model"] if args.provider else conversation["model_used"].split("/")[1] if conversation.get("model_used") else cfg["model_map"][provider]["model"]
+
+        if provider not in cfg["model_map"]:
+            print(f"Error: Unsupported provider: {provider}. Supported providers are: {', '.join(cfg['model_map'].keys())}.")
+            return
+
+        if provider in cfg["api_keys"]:
+            key_env_var = f"{provider.upper()}_API_KEY"
+            if not cfg["api_keys"][provider] and not os.environ.get(key_env_var):
+                print(f"Error: No {provider.capitalize()} API key found. Please set the {key_env_var} environment variable.")
+                return
+
+        stream_chat_completions(conversation, question, provider, model)
+    elif not args.delete:
         print("No arguments provided.")
         parser.print_help()
 

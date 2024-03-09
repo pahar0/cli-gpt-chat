@@ -1,8 +1,13 @@
-openai_api_key: ""
-anthropic_api_key: ""
 system_prompt: "You are a helpful assistant that returns short answers to questions. Do NOT use markdown. Keep your responses under 500 characters."
 conversation_file: "conversation.json"
 conversation_expiry_hours: 1
+default_provider: "openai"
+debug: true
+
+api_keys:
+    openai: ""
+    anthropic: ""
+
 model_map:
     anthropic:
         model: "claude-2.1"
