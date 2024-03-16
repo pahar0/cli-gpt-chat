@@ -9,7 +9,7 @@ This script enables CLI interaction with language models through LiteLLM. It sup
 
 ### Setup
 
-1. Clone the repo: `git clone <repository-url>`.
+1. Clone the repo: `git clone git@github.com:pahar0/cli-gpt-chat.git`.
 2. Install dependencies: `pip install -r path/to/repo/cli-gpt-chat/requirements.txt`.
 3. Make `gpt.py` executable: `chmod +x path/to/repo/cli-gpt-chat/gpt.py`.
 4. Create a symlink: `sudo ln -sf path/to/repo/cli-gpt-chat/gpt.py /usr/local/bin/gpt`.
