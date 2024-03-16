@@ -9,10 +9,12 @@ This script enables CLI interaction with language models through LiteLLM. It sup
 
 ### Setup
 
-1. Clone the repository.
-2. Install dependencies: `pip install -r requirements.txt`.
-3. Create an alias in `.bashrc`: `alias gpt="python ~/path/to/chat.py"`.
-4. Source `.bashrc`: `source ~/.bashrc`.
+1. Clone the repo: `git clone <repository-url>`.
+2. Install dependencies: `pip install -r path/to/repo/cli-gpt-chat/requirements.txt`.
+3. Make `gpt.py` executable: `chmod +x path/to/repo/cli-gpt-chat/gpt.py`.
+4. Create a symlink: `sudo ln -sf path/to/repo/cli-gpt-chat/gpt.py /usr/local/bin/gpt`.
+5. Refresh environment: `source ~/.bashrc`.
+6. Use the command: `gpt <arguments>` anywhere in your terminal.
 
 ## Configuration
 
@@ -49,10 +51,6 @@ gpt What is the capital of Italy?
 
 ## Troubleshooting
 
--   If you installed the script in a virtual environment (venv), but the alias doesn't seem to work correctly, it might be due to the shell not having access to the virtual environment's libraries. To solve this, you can modify the alias to activate the virtual environment before running the script:
-    ```bash
-    alias gpt='source ~/path/to/venv/bin/activate && python ~/path/to/repo/chat.py'
-    ```
 -   You may encounter a warning about protected namespaces due to the pydantic dependency. This warning can safely be ignored. Alternatively, you can eliminate the warning by downgrading the pydantic version using the following command:
     ```bash
     pip install pydantic==1.10.13

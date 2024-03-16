@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import os
 import argparse
 import json
@@ -5,7 +6,9 @@ import datetime
 import yaml
 from litellm import completion
 
-with open("config.yaml", "r") as ymlfile:
+BASE_DIR = os.path.dirname(os.path.realpath(__file__))
+
+with open(os.path.join(BASE_DIR, "config.yaml"), "r") as ymlfile:
     cfg = yaml.safe_load(ymlfile)
 
 CONVERSATION_FILE = os.path.join(os.path.dirname(os.path.realpath(__file__)), cfg["conversation_file"])
